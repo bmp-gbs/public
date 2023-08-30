@@ -103,49 +103,5 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
 
     ' Add "CCI" header to cell G1
     TargetWorksheet.Range("G1").Value = "CCI"
-
-    ' Cycle through each row and perform the comparison and overwrite logic
-    Dim RowIndexCurrent As Long
-    For RowIndexCurrent = 2 To LastRow ' Start from row 2
-        
-        Dim CompareValue As String
-        CompareValue = TargetWorksheet.Cells(RowIndexCurrent, "G").Value
-        
-        Dim RowIndexCompare As Long
-        For RowIndexCompare = 2 To LastRow ' Compare with all other rows
-            
-            ' Skip comparing the current row with itself
-            If RowIndexCompare <> RowIndexCurrent Then
-                
-                Dim CompareValueOther As String
-                CompareValueOther = TargetWorksheet.Cells(RowIndexCompare, "G").Value
-                
-                ' Compare the values in column G
-                If CompareValue = CompareValueOther Then
-                    
-                    ' Cycle through each cell in the row and perform the length check
-                    Dim ColumnIndex As Long
-                    For ColumnIndex = 1 To LastColumn
-                        
-                        Dim CurrentCell As Range
-                        Set CurrentCell = TargetWorksheet.Cells(RowIndexCurrent, ColumnIndex)
-                        
-                        Dim OtherCell As Range
-                        Set OtherCell = TargetWorksheet.Cells(RowIndexCompare, ColumnIndex)
-                        
-                        ' Check if the other cell's value is longer and overwrite if necessary
-                        If Len(OtherCell.Value) > Len(CurrentCell.Value) Then
-                            CurrentCell.Value = OtherCell.Value
-                        End If
-                        
-                    Next ColumnIndex
-                    
-                End If
-                
-            End If
-            
-        Next RowIndexCompare
-        
-    Next RowIndexCurrent
     
 End Sub
