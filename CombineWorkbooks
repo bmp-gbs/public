@@ -148,4 +148,34 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
 
     Next RowIndexCurrent
 
+    ' Loop through each row and compare values in column G
+    For RowIndexCurrent = LastRow To 2 Step -1 ' Start from the last row and go upwards
+
+        Dim CompareValue As String
+        CompareValue = TargetWorksheet.Cells(RowIndexCurrent, "G").Value
+
+        ' Flag to indicate if a matching value has been encountered
+        Dim MatchEncountered As Boolean
+        MatchEncountered = False
+
+        ' Check all rows above the current row
+        For RowIndexCompare = RowIndexCurrent - 1 To 2 Step -1
+
+            Dim CompareValueOther As String
+            CompareValueOther = TargetWorksheet.Cells(RowIndexCompare, "G").Value
+
+            ' Compare the values in column G
+            If CompareValue = CompareValueOther Then
+                MatchEncountered = True
+                Exit For ' No need to check further, we found a match
+            End If
+        Next RowIndexCompare
+
+        ' If a match was encountered, delete the current row
+        If MatchEncountered Then
+            TargetWorksheet.Rows(RowIndexCurrent).Delete
+        End If
+    Next RowIndexCurrent
+
 End Sub
+
