@@ -1,0 +1,182 @@
+Sub CombineWorkbooksAndStoreUniqueFilenames()
+    Dim SourceFolder As String
+    Dim SourceFile As String
+    Dim CurrentWorkbook As Workbook
+    Dim SourceWorkbook As Workbook
+    Dim SourceWorksheet As Worksheet
+    Dim TargetWorksheet As Worksheet
+    Dim LastRow As Long
+    Dim SkipRows As Long
+    Dim FileName As String ' Variable to store the current filename
+    Dim LastColumn As Long ' Variable to store the last used column
+    Dim UniqueFilenames As Collection ' Collection to store unique filenames
+    
+    ' Set the folder containing the source files (change as needed)
+    SourceFolder = ThisWorkbook.Path
+    
+    ' Set the number of rows to skip in each file (default: 6)
+    SkipRows = 6
+    
+    ' Set the target worksheet where data will be combined
+    Set TargetWorksheet = ThisWorkbook.ActiveSheet
+    
+    ' Initialize the collection to store unique filenames
+    Set UniqueFilenames = New Collection
+    
+    ' Loop through each file in the source folder
+    SourceFile = Dir(SourceFolder & "\*.xlsx")
+    Do While SourceFile <> ""
+        ' Check if the current file is not the active workbook
+        If SourceFile <> ThisWorkbook.Name Then
+            Set SourceWorkbook = Workbooks.Open(SourceFolder & "\" & SourceFile)
+            Set SourceWorksheet = SourceWorkbook.Sheets(1)
+            
+            ' Find the last row in the target worksheet
+            LastRow = TargetWorksheet.Cells(TargetWorksheet.Rows.Count, "A").End(xlUp).Row
+            
+            ' Get the filename without path
+            FileName = SourceFile
+            
+            ' Store the filename in the collection if it's not already there
+            On Error Resume Next
+            UniqueFilenames.Add FileName, FileName
+            On Error GoTo 0
+            
+            ' Copy data from source worksheet and paste in target worksheet
+            SourceWorksheet.Range("A" & SkipRows + 1 & ":Z" & SourceWorksheet.Cells(SourceWorksheet.Rows.Count, "A").End(xlUp).Row).Copy _
+                Destination:=TargetWorksheet.Range("A" & LastRow + 1)
+            
+            ' Paste the filename in the right-most column of the pasted range
+            TargetWorksheet.Range("AA1").Value = "Filename" ' Insert the header
+            TargetWorksheet.Range("AA" & LastRow + 1 & ":AA" & LastRow + SourceWorksheet.Cells(SourceWorksheet.Rows.Count, "A").End(xlUp).Row).Value = FileName
+            
+            ' SourceWorkbook.Close False ' Close the source workbook without saving
+        End If
+        SourceFile = Dir
+    Loop
+    
+    ' Find the last used column in the target worksheet
+    LastColumn = TargetWorksheet.Cells(1, TargetWorksheet.Columns.Count).End(xlToLeft).Column
+
+    ' Find the first empty column from the right
+    Dim EmptyColumn As Long
+    EmptyColumn = LastColumn + 1
+
+    ' Loop through the unique filenames and place them in Row 1
+    Dim UniqueFileName As Variant
+    For Each UniqueFileName In UniqueFilenames
+        TargetWorksheet.Cells(1, EmptyColumn).Value = UniqueFileName
+        EmptyColumn = EmptyColumn + 1
+    Next UniqueFileName
+    
+    ' Find the column index for the column titled "Filename"
+    Dim FilenameColumnIndex As Long
+    On Error Resume Next
+    FilenameColumnIndex = WorksheetFunction.Match("Filename", TargetWorksheet.Rows(1), 0)
+    On Error GoTo 0
+    
+    If FilenameColumnIndex > 0 Then
+        Debug.Print "The column titled 'Filename' is in column " & FilenameColumnIndex
+    Else
+        Debug.Print "The column titled 'Filename' was not found."
+    End If
+    
+    ' Loop through each row and copy value from column "Q" to respective unique filename column
+    Dim RowIndex As Long
+    For RowIndex = 2 To LastRow ' Assuming data starts from row 2
+        Dim FilenameItem As String
+        FilenameItem = TargetWorksheet.Cells(RowIndex, FilenameColumnIndex).Value
+        
+        If FilenameItem <> "" Then
+            Dim FilenameColumn As Long
+            FilenameColumn = WorksheetFunction.Match(FilenameItem, TargetWorksheet.Rows(1), 0)
+            
+            If FilenameColumn > 0 Then
+                TargetWorksheet.Cells(RowIndex, FilenameColumn).Value = TargetWorksheet.Cells(RowIndex, "Q").Value
+            End If
+        End If
+
+    Next RowIndex
+
+    ' Delete columns "M" through "P" and "U" through "AA"
+    TargetWorksheet.Range("M:P,U:AA").Delete
+
+    ' Add "CCI" header to cell G1
+    TargetWorksheet.Range("G1").Value = "CCI"
+
+    ' Cycle through each row and perform the comparison and overwrite logic
+    Dim CurrentRowIndex As Long
+    For CurrentRowIndex = 2 To LastRow ' Start from row 2
+        
+        Dim CompareValue As String
+        CompareValue = TargetWorksheet.Cells(CurrentRowIndex, "G").Value
+        
+        Dim CompareRowIndex As Long
+        For CompareRowIndex = 2 To LastRow ' Compare with all other rows
+            
+            ' Skip comparing the current row with itself
+            If CompareRowIndex <> CurrentRowIndex Then
+                
+                Dim CompareValueOther As String
+                CompareValueOther = TargetWorksheet.Cells(CompareRowIndex, "G").Value
+                
+                ' Compare the values in column G
+                If CompareValue = CompareValueOther Then
+                    
+                    ' Calculate the total length of the current row's cell values
+                    Dim TotalLengthCurrent As Long
+                    TotalLengthCurrent = GetTotalLength(TargetWorksheet.Rows(CurrentRowIndex))
+                    
+                    ' Calculate the total length of the other row's cell values
+                    Dim TotalLengthOther As Long
+                    TotalLengthOther = GetTotalLength(TargetWorksheet.Rows(CompareRowIndex))
+                    
+                    ' Compare the total lengths and overwrite if necessary
+                    If TotalLengthOther >= TotalLengthCurrent Then
+                        For Each Cell In TargetWorksheet.Rows(CurrentRowIndex).Cells
+                            Cell.Value = TargetWorksheet.Cells(CompareRowIndex, Cell.Column).Value
+                        Next Cell
+                    End If
+                End If
+            End If
+        Next CompareRowIndex
+    Next CurrentRowIndex
+
+' Create a dictionary to store the count of non-empty cells for each unique value in column G
+Dim ValueCounts As Object
+Set ValueCounts = CreateObject("Scripting.Dictionary")
+
+' Loop through each row and count the non-empty cells for each unique value in column G
+Dim RowIndexValueCount As Long
+For RowIndexValueCount = 2 To LastRow ' Start from row 2
+    Dim ValueInColumnG As String
+    ValueInColumnG = TargetWorksheet.Cells(RowIndexValueCount, "G").Value
+    
+    Dim NonEmptyCellCount As Long
+    NonEmptyCellCount = Application.WorksheetFunction.CountA(TargetWorksheet.Rows(RowIndexValueCount))
+    
+    If ValueCounts.Exists(ValueInColumnG) Then
+        If NonEmptyCellCount > ValueCounts(ValueInColumnG) Then
+            ValueCounts(ValueInColumnG) = NonEmptyCellCount
+        End If
+    Else
+        ValueCounts.Add ValueInColumnG, NonEmptyCellCount
+    End If
+Next RowIndexValueCount
+
+' Loop through each row and remove duplicate rows in column G, keeping the row with the most non-empty cells
+Dim RowIndexRemoveDuplicates As Long
+For RowIndexRemoveDuplicates = LastRow To 2 Step -1 ' Start from the last row
+    Dim ValueToCheck As String
+    ValueToCheck = TargetWorksheet.Cells(RowIndexRemoveDuplicates, "G").Value
+    
+    Dim NonEmptyCellCountToCheck As Long
+    NonEmptyCellCountToCheck = Application.WorksheetFunction.CountA(TargetWorksheet.Rows(RowIndexRemoveDuplicates))
+    
+    If ValueCounts(ValueToCheck) > NonEmptyCellCountToCheck Then
+        TargetWorksheet.Rows(RowIndexRemoveDuplicates).Delete
+    End If
+Next RowIndexRemoveDuplicates
+
+    
+End Sub
