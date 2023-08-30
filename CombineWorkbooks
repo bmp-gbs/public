@@ -162,10 +162,11 @@ For RowIndex_Duplicates = LastRow To 2 Step -1 ' Start from the last row and mov
     If ValueDictionary.Exists(ValueToCheck_Duplicates) Then
         TargetWorksheet.Rows(RowIndex_Duplicates).Delete
     Else
-        ValueDictionary(ValueToCheck_Duplicates) = True ' Add value to the dictionary
+        ValueDictionary(ValueToCheck_Duplicates) = RowIndex_Duplicates ' Add value to the dictionary
     End If
 Next RowIndex_Duplicates
 
 Set ValueDictionary = Nothing
+
 
 End Sub
