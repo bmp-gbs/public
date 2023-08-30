@@ -146,6 +146,10 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
 Dim ValueCounts As Object
 Set ValueCounts = CreateObject("Scripting.Dictionary")
 
+' Create a dictionary to store the rows with the most non-empty cells for each unique value in column G
+Dim MostNonEmptyRows As Object
+Set MostNonEmptyRows = CreateObject("Scripting.Dictionary")
+
 ' Loop through each row and count the non-empty cells for each unique value in column G
 Dim RowIndexValueCount As Long
 For RowIndexValueCount = 2 To LastRow ' Start from row 2
@@ -158,9 +162,11 @@ For RowIndexValueCount = 2 To LastRow ' Start from row 2
     If ValueCounts.Exists(ValueInColumnG) Then
         If NonEmptyCellCount > ValueCounts(ValueInColumnG) Then
             ValueCounts(ValueInColumnG) = NonEmptyCellCount
+            Set MostNonEmptyRows(ValueInColumnG) = TargetWorksheet.Rows(RowIndexValueCount)
         End If
     Else
         ValueCounts.Add ValueInColumnG, NonEmptyCellCount
+        Set MostNonEmptyRows(ValueInColumnG) = TargetWorksheet.Rows(RowIndexValueCount)
     End If
 Next RowIndexValueCount
 
@@ -170,13 +176,9 @@ For RowIndexRemoveDuplicates = LastRow To 2 Step -1 ' Start from the last row
     Dim ValueToCheck As String
     ValueToCheck = TargetWorksheet.Cells(RowIndexRemoveDuplicates, "G").Value
     
-    Dim NonEmptyCellCountToCheck As Long
-    NonEmptyCellCountToCheck = Application.WorksheetFunction.CountA(TargetWorksheet.Rows(RowIndexRemoveDuplicates))
-    
-    If ValueCounts(ValueToCheck) > NonEmptyCellCountToCheck Then
+    If TargetWorksheet.Rows(RowIndexRemoveDuplicates).Address <> MostNonEmptyRows(ValueToCheck).Address Then
         TargetWorksheet.Rows(RowIndexRemoveDuplicates).Delete
     End If
 Next RowIndexRemoveDuplicates
-
     
 End Sub
