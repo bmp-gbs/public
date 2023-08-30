@@ -5,3 +5,5 @@
 =VLOOKUP(G7,'[WorkbookName.xlsx]SheetName'!$A:$C,3,FALSE)
 
 =VLOOKUP(G7,'[WorkbookName.xlsx]SheetName'!$A:$G,3,FALSE)
+
+=INDEX('[otherworkbook.xlsx]SheetName'!$C:$C, MATCH("G7", '[otherworkbook.xlsx]SheetName'!$G:$G, 0))
