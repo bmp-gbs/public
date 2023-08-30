@@ -105,50 +105,52 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
     TargetWorksheet.Range("G1").Value = "CCI"
 
     ' Cycle through each row and perform the comparison and overwrite logic
-    Dim CurrentRowIndex As Long
-    For CurrentRowIndex = 2 To LastRow ' Start from row 2
+    Dim RowIndexCurrent As Long
+    For RowIndexCurrent = 2 To LastRow ' Start from row 2
         
         Dim CompareValue As String
-        CompareValue = TargetWorksheet.Cells(CurrentRowIndex, "G").Value
+        CompareValue = TargetWorksheet.Cells(RowIndexCurrent, "G").Value
         
-        Dim CompareRowIndex As Long
-        For CompareRowIndex = 2 To LastRow ' Compare with all other rows
+        Dim RowIndexCompare As Long
+        For RowIndexCompare = 2 To LastRow ' Compare with all other rows
             
             ' Skip comparing the current row with itself
-            If CompareRowIndex <> CurrentRowIndex Then
+            If RowIndexCompare <> RowIndexCurrent Then
                 
                 Dim CompareValueOther As String
-                CompareValueOther = TargetWorksheet.Cells(CompareRowIndex, "G").Value
+                CompareValueOther = TargetWorksheet.Cells(RowIndexCompare, "G").Value
                 
                 ' Compare the values in column G
                 If CompareValue = CompareValueOther Then
                     
-                    ' Calculate the total length of the current row's cell values
-                    Dim TotalLengthCurrent As Long
-                    TotalLengthCurrent = GetTotalLength(TargetWorksheet.Rows(CurrentRowIndex))
+                    ' Cycle through each cell in the row and perform the length check
+                    Dim ColumnIndex As Long
+                    For ColumnIndex = 1 To LastColumn
+                        
+                        Dim CurrentCell As Range
+                        Set CurrentCell = TargetWorksheet.Cells(RowIndexCurrent, ColumnIndex)
+                        
+                        Dim OtherCell As Range
+                        Set OtherCell = TargetWorksheet.Cells(RowIndexCompare, ColumnIndex)
+                        
+                        ' Check if the other cell's value is longer and overwrite if necessary
+                        If Len(OtherCell.Value) > Len(CurrentCell.Value) Then
+                            CurrentCell.Value = OtherCell.Value
+                        End If
+                        
+                    Next ColumnIndex
                     
-                    ' Calculate the total length of the other row's cell values
-                    Dim TotalLengthOther As Long
-                    TotalLengthOther = GetTotalLength(TargetWorksheet.Rows(CompareRowIndex))
-                    
-                    ' Compare the total lengths and overwrite if necessary
-                    If TotalLengthOther >= TotalLengthCurrent Then
-                        For Each Cell In TargetWorksheet.Rows(CurrentRowIndex).Cells
-                            Cell.Value = TargetWorksheet.Cells(CompareRowIndex, Cell.Column).Value
-                        Next Cell
-                    End If
                 End If
+                
             End If
-        Next CompareRowIndex
-    Next CurrentRowIndex
+            
+        Next RowIndexCompare
+        
+    Next RowIndexCurrent
 
 ' Create a dictionary to store the count of non-empty cells for each unique value in column G
 Dim ValueCounts As Object
 Set ValueCounts = CreateObject("Scripting.Dictionary")
-
-' Create a dictionary to store the rows with the most non-empty cells for each unique value in column G
-Dim MostNonEmptyRows As Object
-Set MostNonEmptyRows = CreateObject("Scripting.Dictionary")
 
 ' Loop through each row and count the non-empty cells for each unique value in column G
 Dim RowIndexValueCount As Long
@@ -162,11 +164,9 @@ For RowIndexValueCount = 2 To LastRow ' Start from row 2
     If ValueCounts.Exists(ValueInColumnG) Then
         If NonEmptyCellCount > ValueCounts(ValueInColumnG) Then
             ValueCounts(ValueInColumnG) = NonEmptyCellCount
-            Set MostNonEmptyRows(ValueInColumnG) = TargetWorksheet.Rows(RowIndexValueCount)
         End If
     Else
         ValueCounts.Add ValueInColumnG, NonEmptyCellCount
-        Set MostNonEmptyRows(ValueInColumnG) = TargetWorksheet.Rows(RowIndexValueCount)
     End If
 Next RowIndexValueCount
 
@@ -176,22 +176,13 @@ For RowIndexRemoveDuplicates = LastRow To 2 Step -1 ' Start from the last row
     Dim ValueToCheck As String
     ValueToCheck = TargetWorksheet.Cells(RowIndexRemoveDuplicates, "G").Value
     
-    If TargetWorksheet.Rows(RowIndexRemoveDuplicates).Address <> MostNonEmptyRows(ValueToCheck).Address Then
+    Dim NonEmptyCellCountToCheck As Long
+    NonEmptyCellCountToCheck = Application.WorksheetFunction.CountA(TargetWorksheet.Rows(RowIndexRemoveDuplicates))
+    
+    If ValueCounts(ValueToCheck) > NonEmptyCellCountToCheck Then
         TargetWorksheet.Rows(RowIndexRemoveDuplicates).Delete
     End If
 Next RowIndexRemoveDuplicates
-    
-End Sub
 
-Function GetTotalLength(rng As Range) As Long
-    Dim cell As Range
-    Dim totalLength As Long
-    totalLength = 0
-   
-    For Each cell In rng.Cells
-        totalLength = totalLength + Len(cell.Value)
-    Next cell
-   
-    GetTotalLength = totalLength
-End Function
+    
 End Sub
