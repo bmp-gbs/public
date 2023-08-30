@@ -98,8 +98,8 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
 
     Next RowIndex
 
-    ' Delete columns "M" through "P" and "U" through "Z"
-    TargetWorksheet.Range("M:P,U:Z").Delete
+    ' Delete columns "M" through "P" and "U" through "AA"
+    TargetWorksheet.Range("M:P,U:AA").Delete
 
     ' Add "CCI" header to cell G1
     TargetWorksheet.Range("G1").Value = "CCI"
@@ -154,9 +154,9 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
         Dim CompareValue_Duplicates As String
         CompareValue_Duplicates = TargetWorksheet.Cells(RowIndexCurrent_Duplicates, "G").Value
 
-        ' Flag to indicate if a matching value has been encountered
-        Dim MatchEncountered_Duplicates As Boolean
-        MatchEncountered_Duplicates = False
+        ' Count the number of occurrences of the current value
+        Dim Occurrences As Long
+        Occurrences = 0
 
         ' Check all rows above the current row
         Dim RowIndexCompare_Duplicates As Long
@@ -167,15 +167,14 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
 
             ' Compare the values in column G
             If CompareValue_Duplicates = CompareValueOther_Duplicates Then
-                MatchEncountered_Duplicates = True
-                Exit For ' No need to check further, we found a match
+                Occurrences = Occurrences + 1
+                ' Delete rows with duplicate values (except the first one)
+                If Occurrences > 1 Then
+                    TargetWorksheet.Rows(RowIndexCurrent_Duplicates).Delete
+                    Exit For
+                End If
             End If
         Next RowIndexCompare_Duplicates
-
-        ' If a match was encountered, delete the current row
-        If MatchEncountered_Duplicates Then
-            TargetWorksheet.Rows(RowIndexCurrent_Duplicates).Delete
-        End If
     Next RowIndexCurrent_Duplicates
-
+    
 End Sub
