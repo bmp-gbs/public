@@ -1,1 +1,2 @@
 =VLOOKUP(G1, [file.xlsx]Sheet1!$G:$C, 3, FALSE)
+=VLOOKUP(G2, '[file.xlsx]Sheet1'!$G$2:$C$100, 3, FALSE)
