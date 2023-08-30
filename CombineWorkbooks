@@ -182,3 +182,16 @@ For RowIndexRemoveDuplicates = LastRow To 2 Step -1 ' Start from the last row
 Next RowIndexRemoveDuplicates
     
 End Sub
+
+Function GetTotalLength(rng As Range) As Long
+    Dim cell As Range
+    Dim totalLength As Long
+    totalLength = 0
+   
+    For Each cell In rng.Cells
+        totalLength = totalLength + Len(cell.Value)
+    Next cell
+   
+    GetTotalLength = totalLength
+End Function
+End Sub
