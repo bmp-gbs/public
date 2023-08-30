@@ -148,54 +148,64 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
 
     Next RowIndexCurrent
 
-       ' Additional code for removing duplicate rows based on values in column G
-    Dim ws_Duplicates As Worksheet
-    Dim lastRow_Duplicates As Long, i_Duplicates As Long
-    Dim dict_Duplicates As Object
-    Set dict_Duplicates = CreateObject("Scripting.Dictionary")
+' Detect rows with duplicate values in column G
+Dim DuplicateRows As Collection
+Set DuplicateRows = New Collection
+
+Dim DuplicateValues As Collection ' Collection to store duplicate values in column G
+Set DuplicateValues = New Collection
+
+Dim CheckRowIndex_Duplicates As Long
+For CheckRowIndex_Duplicates = 2 To LastRow ' Start from row 2
+    Dim CheckValue_Duplicates As String
+    CheckValue_Duplicates = TargetWorksheet.Cells(CheckRowIndex_Duplicates, "G").Value
+
+    Dim CompareRowIndex_Duplicates As Long
+    For CompareRowIndex_Duplicates = CheckRowIndex_Duplicates + 1 To LastRow ' Compare with subsequent rows
+        Dim CompareValue_Duplicates As String
+        CompareValue_Duplicates = TargetWorksheet.Cells(CompareRowIndex_Duplicates, "G").Value
+
+        If CheckValue_Duplicates = CompareValue_Duplicates Then
+            ' Add the row index and corresponding value to the collections if a duplicate is found
+            On Error Resume Next
+            DuplicateRows.Add CheckRowIndex_Duplicates, CStr(CheckRowIndex_Duplicates)
+            DuplicateRows.Add CompareRowIndex_Duplicates, CStr(CompareRowIndex_Duplicates)
+            DuplicateValues.Add CheckValue_Duplicates, CheckValue_Duplicates
+            On Error GoTo 0
+        End If
+    Next CompareRowIndex_Duplicates
+Next CheckRowIndex_Duplicates
+
+' Delete remaining duplicate rows based on criteria
+Dim DuplicateRowIndex As Variant
+For Each DuplicateRowIndex In DuplicateRows
+    Dim DuplicateValue As String
+    DuplicateValue = DuplicateValues(DuplicateRowIndex)
     
-    ' Set the worksheet
-    Set ws_Duplicates = TargetWorksheet
+    ' Check if the cells to the right of column P are blank for the current duplicate row
+    Dim IsBlank As Boolean
+    IsBlank = True
     
-    ' Find the last used row in column G
-    lastRow_Duplicates = ws_Duplicates.Cells(ws_Duplicates.Rows.Count, "G").End(xlUp).Row
+    Dim ColumnIndex_Duplicates As Long
+    For ColumnIndex_Duplicates = TargetWorksheet.Cells(DuplicateRowIndex, "P").Column + 1 To LastColumn
+        If TargetWorksheet.Cells(DuplicateRowIndex, ColumnIndex_Duplicates).Value <> "" Then
+            IsBlank = False
+            Exit For
+        End If
+    Next ColumnIndex_Duplicates
     
-    ' Create a dictionary to store maximum character counts for each value in column G
-    Dim dict_MaxCharacterCounts_Duplicates As Object
-    Set dict_MaxCharacterCounts_Duplicates = CreateObject("Scripting.Dictionary")
-    
-    ' Loop through the rows to track maximum character counts for each value in column G
-    For i_Duplicates = 2 To lastRow_Duplicates
-        Dim value_G_Duplicates As String
-        value_G_Duplicates = CStr(ws_Duplicates.Cells(i_Duplicates, "G").Value)
-        
-        Dim rowCharacterCount_Duplicates As Long
-        rowCharacterCount_Duplicates = Len(Join(Application.Transpose(Application.Index(ws_Duplicates.Rows(i_Duplicates).Value, 0, 0)), ""))
-        
-        If Not dict_MaxCharacterCounts_Duplicates.Exists(value_G_Duplicates) Then
-            dict_MaxCharacterCounts_Duplicates(value_G_Duplicates) = rowCharacterCount_Duplicates
-        Else
-            ' Update maximum character count if a higher value is encountered
-            If rowCharacterCount_Duplicates > dict_MaxCharacterCounts_Duplicates(value_G_Duplicates) Then
-                dict_MaxCharacterCounts_Duplicates(value_G_Duplicates) = rowCharacterCount_Duplicates
+    ' If the row is not blank to the right of column P, delete the remaining duplicate rows
+    If Not IsBlank Then
+        Dim DeleteRowIndex As Variant
+        For Each DeleteRowIndex In DuplicateRows
+            If DeleteRowIndex <> DuplicateRowIndex Then
+                ' Delete the row and adjust the collection index
+                TargetWorksheet.Rows(DeleteRowIndex).Delete
+                DuplicateRows.Remove CStr(DeleteRowIndex)
             End If
-        End If
-    Next i_Duplicates
-    
-    ' Loop through the rows in reverse order to delete rows
-    For i_Duplicates = lastRow_Duplicates To 2 Step -1
-        Dim value_G_Delete_Duplicates As String
-        value_G_Delete_Duplicates = CStr(ws_Duplicates.Cells(i_Duplicates, "G").Value)
-        
-        Dim rowCharacterCount_Delete_Duplicates As Long
-        rowCharacterCount_Delete_Duplicates = Len(Join(Application.Transpose(Application.Index(ws_Duplicates.Rows(i_Duplicates).Value, 0, 0)), ""))
-        
-        ' Delete the row if it doesn't have the highest character count for this value in column G
-        If rowCharacterCount_Delete_Duplicates < dict_MaxCharacterCounts_Duplicates(value_G_Delete_Duplicates) Then
-            ws_Duplicates.Rows(i_Duplicates).Delete
-        End If
-    Next i_Duplicates
-    
-    Set dict_MaxCharacterCounts_Duplicates = Nothing
-    Set dict_Duplicates = Nothing
+        Next DeleteRowIndex
+        Exit For ' No need to check other duplicate rows for this value
+    End If
+Next DuplicateRowIndex
+
 End Sub
