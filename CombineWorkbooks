@@ -148,25 +148,27 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
 
     Next RowIndexCurrent
 
-' Remove duplicate rows based on values in column G
-Dim RowIndex_Duplicates As Long
-Dim ValueDictionary As Object
-
-Set ValueDictionary = CreateObject("Scripting.Dictionary")
-
-For RowIndex_Duplicates = LastRow To 2 Step -1 ' Start from the last row and move upwards
-    Dim ValueToCheck_Duplicates As String
-    ValueToCheck_Duplicates = CStr(TargetWorksheet.Cells(RowIndex_Duplicates, "G").Value)
+    ' Additional code for removing duplicate rows based on values in column G
+    Dim ws_Duplicates As Worksheet
+    Dim lastRow_Duplicates As Long, i_Duplicates As Long
+    Dim dict_Duplicates As Object
+    Set dict_Duplicates = CreateObject("Scripting.Dictionary")
     
-    ' Check if the value is already encountered in the dictionary
-    If ValueDictionary.Exists(ValueToCheck_Duplicates) Then
-        TargetWorksheet.Rows(RowIndex_Duplicates).Delete
-    Else
-        ValueDictionary(ValueToCheck_Duplicates) = True ' Add value to the dictionary
-    End If
-Next RowIndex_Duplicates
-
-Set ValueDictionary = Nothing
-
+    ' Set the worksheet
+    Set ws_Duplicates = TargetWorksheet
+    
+    ' Find the last used row in column G
+    lastRow_Duplicates = ws_Duplicates.Cells(ws_Duplicates.Rows.Count, "G").End(xlUp).Row
+    
+    ' Loop through the rows in reverse order to avoid issues with deletion
+    For i_Duplicates = lastRow_Duplicates To 2 Step -1
+        If dict_Duplicates.Exists(ws_Duplicates.Cells(i_Duplicates, "G").Value) Then
+            ws_Duplicates.Rows(i_Duplicates).Delete
+        Else
+            dict_Duplicates.Add ws_Duplicates.Cells(i_Duplicates, "G").Value, 1
+        End If
+    Next i_Duplicates
+    
+    Set dict_Duplicates = Nothing
 
 End Sub
