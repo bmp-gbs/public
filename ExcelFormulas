@@ -1,1 +1,4 @@
 =VLOOKUP(G7, [OtherWorkbook.xlsx]Sheet1!G:C, 2, FALSE)
+
+=VLOOKUP(G7, '[otherworkbook.xlsx]Sheet1'!$G$1:$C$100, 3, FALSE)
+
