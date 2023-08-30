@@ -148,28 +148,4 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
 
     Next RowIndexCurrent
 
-' Remove duplicate rows based on values in column G
-Dim RowIndexToDelete_Duplicates As Long
-For RowIndexToDelete_Duplicates = LastRow To 2 Step -1 ' Start from the last row and move upwards
-    Dim ValueToCheck_Duplicates As String
-    ValueToCheck_Duplicates = CStr(TargetWorksheet.Cells(RowIndexToDelete_Duplicates, "G").Value)
-    
-    ' Check if the value is already encountered in a previous row
-    Dim CheckRowIndex_Duplicates As Long
-    Dim DuplicateFound_Duplicates As Boolean
-    DuplicateFound_Duplicates = False
-    For CheckRowIndex_Duplicates = RowIndexToDelete_Duplicates - 1 To 2 Step -1
-        If CStr(TargetWorksheet.Cells(CheckRowIndex_Duplicates, "G").Value) = ValueToCheck_Duplicates Then
-            DuplicateFound_Duplicates = True
-            Exit For
-        End If
-    Next CheckRowIndex_Duplicates
-    
-    ' If a duplicate is found, delete the current row
-    If DuplicateFound_Duplicates Then
-        TargetWorksheet.Rows(RowIndexToDelete_Duplicates).Delete
-    End If
-Next RowIndexToDelete_Duplicates
-
-
 End Sub
