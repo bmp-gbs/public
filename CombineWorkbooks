@@ -147,34 +147,5 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
         Next RowIndexCompare
 
     Next RowIndexCurrent
-    ' Loop through each row and compare values in column G
-    Dim RowIndexCurrent_Duplicates As Long
-    For RowIndexCurrent_Duplicates = LastRow To 2 Step -1 ' Start from the last row and go upwards
-
-        Dim CompareValue_Duplicates As String
-        CompareValue_Duplicates = TargetWorksheet.Cells(RowIndexCurrent_Duplicates, "G").Value
-
-        ' Count the number of occurrences of the current value
-        Dim Occurrences As Long
-        Occurrences = 0
-
-        ' Check all rows above the current row
-        Dim RowIndexCompare_Duplicates As Long
-        For RowIndexCompare_Duplicates = RowIndexCurrent_Duplicates - 1 To 2 Step -1
-
-            Dim CompareValueOther_Duplicates As String
-            CompareValueOther_Duplicates = TargetWorksheet.Cells(RowIndexCompare_Duplicates, "G").Value
-
-            ' Compare the values in column G
-            If CompareValue_Duplicates = CompareValueOther_Duplicates Then
-                Occurrences = Occurrences + 1
-                ' Delete rows with duplicate values (except the first one)
-                If Occurrences > 1 Then
-                    TargetWorksheet.Rows(RowIndexCurrent_Duplicates).Delete
-                    Exit For
-                End If
-            End If
-        Next RowIndexCompare_Duplicates
-    Next RowIndexCurrent_Duplicates
     
 End Sub
