@@ -149,6 +149,7 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
     Next RowIndexCurrent
 
     ' Loop through each row and compare values in column G
+    Dim RowIndexCurrent As Long
     For RowIndexCurrent = LastRow To 2 Step -1 ' Start from the last row and go upwards
 
         Dim CompareValue As String
@@ -159,6 +160,7 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
         MatchEncountered = False
 
         ' Check all rows above the current row
+        Dim RowIndexCompare As Long
         For RowIndexCompare = RowIndexCurrent - 1 To 2 Step -1
 
             Dim CompareValueOther As String
@@ -178,4 +180,3 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
     Next RowIndexCurrent
 
 End Sub
-
