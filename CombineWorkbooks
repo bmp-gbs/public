@@ -149,4 +149,3 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
     Next RowIndexCurrent
 
 End Sub
-End Sub
