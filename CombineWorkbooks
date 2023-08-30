@@ -147,5 +147,35 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
         Next RowIndexCompare
 
     Next RowIndexCurrent
+    ' Loop through each row and compare values in column G
+    Dim RowIndexCurrent_Duplicates As Long
+    For RowIndexCurrent_Duplicates = LastRow To 2 Step -1 ' Start from the last row and go upwards
+
+        Dim CompareValue_Duplicates As String
+        CompareValue_Duplicates = TargetWorksheet.Cells(RowIndexCurrent_Duplicates, "G").Value
+
+        ' Flag to indicate if a matching value has been encountered
+        Dim MatchEncountered_Duplicates As Boolean
+        MatchEncountered_Duplicates = False
+
+        ' Check all rows above the current row
+        Dim RowIndexCompare_Duplicates As Long
+        For RowIndexCompare_Duplicates = RowIndexCurrent_Duplicates - 1 To 2 Step -1
+
+            Dim CompareValueOther_Duplicates As String
+            CompareValueOther_Duplicates = TargetWorksheet.Cells(RowIndexCompare_Duplicates, "G").Value
+
+            ' Compare the values in column G
+            If CompareValue_Duplicates = CompareValueOther_Duplicates Then
+                MatchEncountered_Duplicates = True
+                Exit For ' No need to check further, we found a match
+            End If
+        Next RowIndexCompare_Duplicates
+
+        ' If a match was encountered, delete the current row
+        If MatchEncountered_Duplicates Then
+            TargetWorksheet.Rows(RowIndexCurrent_Duplicates).Delete
+        End If
+    Next RowIndexCurrent_Duplicates
 
 End Sub
