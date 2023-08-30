@@ -98,8 +98,8 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
 
     Next RowIndex
 
-    ' Delete columns "M" through "P" and "U" through "AA"
-    TargetWorksheet.Range("M:P,U:AA").Delete
+    ' Delete columns "M" through "P" and "U" through "Z"
+    TargetWorksheet.Range("M:P,U:Z").Delete
 
     ' Add "CCI" header to cell G1
     TargetWorksheet.Range("G1").Value = "CCI"
@@ -147,42 +147,5 @@ Sub CombineWorkbooksAndStoreUniqueFilenames()
         Next RowIndexCompare
         
     Next RowIndexCurrent
-
-' Create a dictionary to store the count of non-empty cells for each unique value in column G
-Dim ValueCounts As Object
-Set ValueCounts = CreateObject("Scripting.Dictionary")
-
-' Loop through each row and count the non-empty cells for each unique value in column G
-Dim RowIndexValueCount As Long
-For RowIndexValueCount = 2 To LastRow ' Start from row 2
-    Dim ValueInColumnG As String
-    ValueInColumnG = TargetWorksheet.Cells(RowIndexValueCount, "G").Value
-    
-    Dim NonEmptyCellCount As Long
-    NonEmptyCellCount = Application.WorksheetFunction.CountA(TargetWorksheet.Rows(RowIndexValueCount))
-    
-    If ValueCounts.Exists(ValueInColumnG) Then
-        If NonEmptyCellCount > ValueCounts(ValueInColumnG) Then
-            ValueCounts(ValueInColumnG) = NonEmptyCellCount
-        End If
-    Else
-        ValueCounts.Add ValueInColumnG, NonEmptyCellCount
-    End If
-Next RowIndexValueCount
-
-' Loop through each row and remove duplicate rows in column G, keeping the row with the most non-empty cells
-Dim RowIndexRemoveDuplicates As Long
-For RowIndexRemoveDuplicates = LastRow To 2 Step -1 ' Start from the last row
-    Dim ValueToCheck As String
-    ValueToCheck = TargetWorksheet.Cells(RowIndexRemoveDuplicates, "G").Value
-    
-    Dim NonEmptyCellCountToCheck As Long
-    NonEmptyCellCountToCheck = Application.WorksheetFunction.CountA(TargetWorksheet.Rows(RowIndexRemoveDuplicates))
-    
-    If ValueCounts(ValueToCheck) > NonEmptyCellCountToCheck Then
-        TargetWorksheet.Rows(RowIndexRemoveDuplicates).Delete
-    End If
-Next RowIndexRemoveDuplicates
-
     
 End Sub
