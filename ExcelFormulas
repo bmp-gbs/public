@@ -1,4 +1,7 @@
 =VLOOKUP(G7, [OtherWorkbook.xlsx]Sheet1!G:C, 2, FALSE)
 
-=VLOOKUP(G7, '[otherworkbook.xlsx]Sheet1'!$G$1:$C$100, 3, FALSE)
+=VLOOKUP(G7, '[otherworkbook.xlsx]Sheet1'!$A$1:$G$10000, 3, FALSE)
 
+=VLOOKUP(G7,'[WorkbookName.xlsx]SheetName'!$A:$C,3,FALSE)
+
+=VLOOKUP(G7,'[WorkbookName.xlsx]SheetName'!$A:$G,3,FALSE)
