@@ -5,3 +5,4 @@
 
 =VLOOKUP(G7, '[file.xlsx]Sheet2'!$G$7:$C, 3, FALSE)
 
+=VLOOKUP(G7, [OtherWorkbook.xlsx]Sheet1!A:C, 3, FALSE)
